@@ -1,0 +1,27 @@
+{
+  "id": "01a014eb-f765-7578-986b-504991d1e5af",
+  "type": "prayer",
+  "body": "I have an interview on Thursday. It would change a lot for us.",
+  "visibility": "public",
+  "status": "answered",
+  "createdAt": 1787057403749,
+  "updatedAt": 1787057403873,
+  "answeredAt": 1787057403873,
+  "version": 2,
+  "prayerResponseCount": 1,
+  "commentCount": 0,
+  "updateCount": 1,
+  "displayProfile": {
+    "username": "connor",
+    "displayName": "Connor",
+    "avatarKey": null
+  },
+  "isMine": false,
+  "hasPrayed": true,
+  "link": {
+    "id": "01a014eb-f7e1-70f4-8ef7-4ce15eb7adf6",
+    "type": "miracle",
+    "excerpt": "I got the call. I start on the first.",
+    "createdAt": 1787057403873
+  }
+}

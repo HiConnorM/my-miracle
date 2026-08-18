@@ -9,7 +9,7 @@ import {
   requireNumber,
   requireString,
 } from '../http/body';
-import { loadOwnedPost, loadViewablePost } from '../authz/policy';
+import { canViewPost, loadOwnedPost, loadViewablePost } from '../authz/policy';
 import {
   findPost,
   formatCursor,
@@ -47,12 +47,48 @@ async function page(env: Env, viewer: Viewer, posts: PostRecord[]) {
 export async function getPost({ request, env, params }: RouteContext): Promise<Response> {
   const viewer = await requireViewer(request, env);
   const post = await loadViewablePost(env, viewer, params.id!);
-  return json(
-    serializePost(post, {
+
+  return json({
+    ...serializePost(post, {
       viewerAccountId: viewer.accountId,
       hasPrayed: await hasPrayed(env, viewer, post.id),
     }),
-  );
+    link: await resolveAnsweredLink(env, viewer, post),
+  });
+}
+
+/**
+ * The other half of an answered story: the miracle a prayer became, or the prayer a
+ * miracle came from.
+ *
+ * Resolved through the same visibility rules as anything else. A public prayer can be
+ * answered with a private miracle, and in that case the link simply is not there — the
+ * existence of an answer must not leak content the viewer cannot see.
+ */
+async function resolveAnsweredLink(
+  env: Env,
+  viewer: Viewer,
+  post: PostRecord,
+): Promise<{ id: string; type: string; excerpt: string; createdAt: number } | null> {
+  const column = post.type === 'prayer' ? 'prayer_post_id' : 'miracle_post_id';
+  const other = post.type === 'prayer' ? 'miracle_post_id' : 'prayer_post_id';
+
+  const row = await env.DB.prepare(
+    `select ${other} as linked_id from answered_links where ${column} = ?`,
+  )
+    .bind(post.id)
+    .first<{ linked_id: string }>();
+  if (!row) return null;
+
+  const linked = await findPost(env, row.linked_id);
+  if (!linked || !(await canViewPost(env, viewer, linked))) return null;
+
+  return {
+    id: linked.id,
+    type: linked.type,
+    excerpt: linked.body.length > 140 ? `${linked.body.slice(0, 139)}…` : linked.body,
+    createdAt: linked.createdAt,
+  };
 }
 
 export async function getFeed({ request, env, url }: RouteContext): Promise<Response> {

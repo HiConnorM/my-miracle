@@ -38,6 +38,7 @@ import {
   unfollowProfile,
 } from './routes/social';
 import { createReport } from './routes/reports';
+import { answerPrayer, createPostUpdate, listPostUpdates } from './routes/answering';
 import {
   cancelAccountDeletion,
   getMe,
@@ -77,6 +78,11 @@ const router = new Router()
   .delete('/v1/posts/:id/prayers', deletePrayerResponse)
   .get('/v1/posts/:id/comments', listComments)
   .post('/v1/posts/:id/comments', createComment)
+  .get('/v1/posts/:id/updates', listPostUpdates)
+  .post('/v1/posts/:id/updates', createPostUpdate)
+
+  // The core loop. One transactional route, owner only.
+  .post('/v1/posts/:id/answer', answerPrayer)
   .delete('/v1/comments/:id', deleteComment)
 
   // People

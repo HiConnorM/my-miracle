@@ -2,7 +2,9 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "my-miracles-api",
   "main": "src/index.ts",
-  "compatibility_date": "2026-08-01",
+  // Pinned to a date the bundled workerd supports. Wrangler 4.123+ handles newer dates
+  // but requires Node 22; this repository builds on Node 20. Raise both together.
+  "compatibility_date": "2026-05-01",
   "observability": { "enabled": true },
 
   // Development, staging and production are three separate D1 databases. A debug build

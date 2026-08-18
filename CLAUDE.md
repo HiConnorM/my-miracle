@@ -125,6 +125,16 @@ Reset the local D1 database to seeded state:
 cd workers && npm run db:reset:local
 ```
 
+Run the Worker locally (needs `workers/.dev.vars` with `SESSION_SIGNING_KEY`):
+
+```bash
+cd workers && npm run dev
+```
+
+The contract fixtures in `MyMiraclesTests/Fixtures/` were captured from that live Worker.
+Regenerate them by driving the real flow over HTTP — never hand-edit them, or they stop
+being evidence of anything.
+
 ---
 
 ## Project layout

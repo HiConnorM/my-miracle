@@ -76,12 +76,17 @@ treats the adversarial matrix as the security model rather than as extra tests.
 **Phase 1** — D1 schema: 22 tables, 33 indexes, 40 schema checks.
 **Phase 2** — Worker authorization layer and the adversarial matrix.
 **Phase 3** — Sign in with Apple, rotating sessions, onboarding, account deletion.
+**Phase 4** — the core loop: ask, be prayed for, update, answer, remember.
 
-Verified by 109 Worker tests, 83 iOS unit tests, 4 UI tests and 40 schema checks.
+Verified by 133 Worker tests, 110 iOS unit tests, 4 UI tests and 40 schema checks —
+including contract tests against responses captured from a live Worker.
 
-Next: Phase 4 — the prayer → answered → miracle vertical slice, the first
-TestFlight-worthy milestone. The full order is in
+Next: Phase 5 — the design system, then Home and Journal. The full order is in
 [docs/product-spec.md](docs/product-spec.md#build-order).
+
+**Requires Node 20.** Wrangler 4.123+ needs Node 22; the pinned version and the
+`compatibility_date` in `workers/wrangler.jsonc` are matched to Node 20. Raise all three
+together.
 
 **Before a device build:** enable the Sign in with Apple capability for the App ID in the
 Apple Developer portal. Simulator builds work without it.
