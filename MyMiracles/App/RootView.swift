@@ -35,8 +35,8 @@ struct RootView: View {
             OnboardingView()
         case .signedInWithoutProfile:
             ClaimUsernameView()
-        case .signedIn:
-            JournalView()
+        case .signedIn(let profile):
+            SignedInShell(profile: profile)
         }
     }
 }

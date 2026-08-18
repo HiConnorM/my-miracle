@@ -3,7 +3,6 @@ import SwiftUI
 /// The journal — and, until Phase 6 builds Home, the app's main screen.
 struct JournalView: View {
     @Environment(\.dependencies) private var dependencies
-    @Environment(AuthenticationModel.self) private var auth
 
     @State private var model: JournalModel?
     @State private var composing: PostType?
@@ -20,9 +19,9 @@ struct JournalView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
-                        Button("Record a miracle", systemImage: "sparkle") { composing = .miracle }
-                        Button("Ask for prayer", systemImage: "hands.and.sparkles") { composing = .prayer }
-                        Button("Note something you're grateful for", systemImage: "leaf") {
+                        Button("Record a miracle", systemImage: MiracleIcon.miracle) { composing = .miracle }
+                        Button("Ask for prayer", systemImage: MiracleIcon.prayer) { composing = .prayer }
+                        Button("Note something you're grateful for", systemImage: MiracleIcon.gratitude) {
                             composing = .gratitude
                         }
                     } label: {
@@ -30,11 +29,6 @@ struct JournalView: View {
                             .foregroundStyle(MiracleColor.haloGold)
                     }
                     .accessibilityLabel("Add to your journal")
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Sign out") { Task { await auth.signOut() } }
-                        .font(MiracleFont.interface(.footnote))
-                        .foregroundStyle(MiracleColor.inkSecondary)
                 }
             }
             .navigationDestination(item: $selected) { post in

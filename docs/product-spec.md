@@ -86,6 +86,15 @@ Finite sessions. After the day's prayer set:
 > **You're caught up.**
 > Thank you for showing up for someone today.
 
+Implemented in `GET /v1/home`: a batch of five, ordered by **fewest responses first** so
+the prayer nobody has carried surfaces before the popular one. Praying removes someone from
+the set, so it genuinely empties. "See more" exists but has to be asked for — there is no
+automatic next page anywhere in the product.
+
+On This Day resurfaces only the viewer's own miracles, gratitude and *answered* prayers.
+Never an open one: bringing back "please pray for my marriage" from three years ago, with
+no indication of how it turned out, would be a small cruelty.
+
 Reaction vocabulary stays small: `I prayed` · `Hold this` · `Encourage`. No emoji grid.
 
 ## Onboarding

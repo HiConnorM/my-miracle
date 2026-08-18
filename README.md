@@ -78,12 +78,13 @@ treats the adversarial matrix as the security model rather than as extra tests.
 **Phase 3** — Sign in with Apple, rotating sessions, onboarding, account deletion.
 **Phase 4** — the core loop: ask, be prayed for, update, answer, remember.
 **Phase 5** — the design system: tokens, components, and verified contrast.
+**Phase 6** — Home: a finite session, On This Day, and a real ending.
 
-Verified by 133 Worker tests, 124 iOS unit tests, 4 UI tests and 40 schema checks —
+Verified by 154 Worker tests, 137 iOS unit tests, 4 UI tests and 40 schema checks —
 including contract tests against a live Worker and WCAG contrast measured on the shipped
 asset catalog in light, dark and both high-contrast appearances.
 
-Next: Phase 6 — Home. The full order is in
+Next: Phase 7 — the Journal proper. The full order is in
 [docs/product-spec.md](docs/product-spec.md#build-order).
 
 **Requires Node 20.** Wrangler 4.123+ needs Node 22; the pinned version and the

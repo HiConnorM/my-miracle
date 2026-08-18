@@ -39,6 +39,7 @@ import {
 } from './routes/social';
 import { createReport } from './routes/reports';
 import { answerPrayer, createPostUpdate, listPostUpdates } from './routes/answering';
+import { getHome } from './routes/home';
 import {
   cancelAccountDeletion,
   getMe,
@@ -66,6 +67,7 @@ const router = new Router()
   .post('/v1/me/cancel-deletion', cancelAccountDeletion)
 
   // Content
+  .get('/v1/home', getHome)
   .get('/v1/feed', getFeed)
   .get('/v1/me/journal', getJournal)
   .post('/v1/posts', createPost)

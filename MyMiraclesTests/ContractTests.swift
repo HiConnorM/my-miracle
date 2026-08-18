@@ -74,6 +74,29 @@ nonisolated struct ContractTests {
         }
     }
 
+    /// Home is one request that fills a whole screen, so a drift here breaks the first
+    /// thing anyone sees.
+    @Test("Home decodes from a real response")
+    func homeDecodes() throws {
+        let feed = try APICoding.decoder.decode(HomeFeed.self, from: try Self.fixture("home"))
+
+        #expect(feed.prayerRequests.count == 2)
+        #expect(feed.prayerRequests.allSatisfy { $0.type == .prayer })
+        #expect(feed.prayerRequests.allSatisfy { !$0.isMine })
+        #expect(feed.prayerRequests.allSatisfy { !$0.hasPrayed })
+        // Nothing left beyond the batch, so this session has an end.
+        #expect(feed.isCaughtUp == false)
+        #expect(feed.remainingPrayerRequests == 0)
+    }
+
+    @Test("Home's payload has exactly the expected shape")
+    func homeShape() throws {
+        let raw = try #require(
+            try JSONSerialization.jsonObject(with: try Self.fixture("home")) as? [String: Any]
+        )
+        #expect(Set(raw.keys) == ["prayerRequests", "remainingPrayerRequests", "recentMiracles", "memory"])
+    }
+
     /// Every key the Worker sends is one the client understands. An unexpected key is not an
     /// error, but it usually means the two sides have drifted.
     @Test("The payload has exactly the expected shape")
