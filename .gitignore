@@ -1,0 +1,40 @@
+# Secrets — never commit. Copy Config/Secrets.example.xcconfig to
+# Config/Secrets.Debug.xcconfig (or .Staging / .Release).
+Config/Secrets.*.xcconfig
+!Config/Secrets.example.xcconfig
+.env
+.env.*
+!.env.example
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+Package.resolved.backup
+
+# Node / admin
+node_modules/
+.next/
+out/
+.vercel/
+
+# Cloudflare
+.wrangler/
+workers/.wrangler/
+workers/worker-configuration.d.ts
+.dev.vars
+
+# macOS
+.DS_Store

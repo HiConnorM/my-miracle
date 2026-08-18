@@ -1,0 +1,27 @@
+{
+  "name": "my-miracles-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "npm run types && tsc --noEmit",
+    "db:verify": "scripts/verify-schema.sh",
+    "db:apply:local": "wrangler d1 migrations apply my-miracles-dev --local",
+    "db:seed:local": "wrangler d1 execute my-miracles-dev --local --file=seed.sql",
+    "db:reset:local": "npm run db:apply:local && npm run db:seed:local",
+    "db:apply:staging": "wrangler d1 migrations apply my-miracles-staging --env staging --remote",
+    "db:apply:production": "wrangler d1 migrations apply my-miracles --env production --remote",
+    "test": "npm run db:verify && npm run typecheck && npm run test:unit",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "types": "wrangler types"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.21.3",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.10",
+    "wrangler": "^4.86.0"
+  }
+}

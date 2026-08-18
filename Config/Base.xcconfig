@@ -1,0 +1,45 @@
+// Base.xcconfig — settings shared by every configuration.
+//
+// Per-environment values live in Debug/Staging/Release.xcconfig.
+// Real credentials live in Secrets.xcconfig, which is gitignored.
+
+// `//` starts a comment in xcconfig, so a literal URL cannot be written inline.
+// Compose one with MM_SLASH instead:  https:$(MM_SLASH)$(MM_SLASH)host
+MM_SLASH = /
+
+// Product name, bundle identifier, Info.plist and asset-catalog settings are per-target
+// and live in the project file. Everything below applies to every target.
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+
+// Rule 1: iOS 18+.
+IPHONEOS_DEPLOYMENT_TARGET = 18.0
+SWIFT_VERSION = 6.0
+TARGETED_DEVICE_FAMILY = 1
+SDKROOT = iphoneos
+SUPPORTED_PLATFORMS = iphoneos iphonesimulator
+
+// Swift 6 language mode with the Xcode 26 approachable-concurrency defaults:
+// app code is MainActor-isolated unless it says otherwise.
+SWIFT_APPROACHABLE_CONCURRENCY = YES
+SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor
+
+// Rule 21: warnings are not allowed to accumulate.
+SWIFT_TREAT_WARNINGS_AS_ERRORS = YES
+GCC_TREAT_WARNINGS_AS_ERRORS = YES
+CLANG_WARN_DOCUMENTATION_COMMENTS = YES
+
+DEVELOPMENT_TEAM = KR2G4P6S72
+CODE_SIGN_STYLE = Automatic
+ENABLE_USER_SCRIPT_SANDBOXING = YES
+DEAD_CODE_STRIPPING = YES
+
+// Synchronized file groups add every file in MyMiracles/ to the target, including the
+// .gitkeep placeholders that preserve empty feature directories in git. Without this they
+// would be copied into the app bundle — and all collide on the same destination path.
+EXCLUDED_SOURCE_FILE_NAMES = .gitkeep .DS_Store
+
+// Default. Each environment file sets its own value and then includes its own gitignored
+// Secrets.<Configuration>.xcconfig, so a local override always wins and development,
+// staging and production never share a Cloudflare environment.
+MM_API_BASE_URL =

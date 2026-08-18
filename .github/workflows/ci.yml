@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Fast, no network, no credentials. Runs first so a schema mistake fails in seconds
+  # rather than after a simulator boot.
+  database:
+    name: Schema and constraints
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify schema
+        run: workers/scripts/verify-schema.sh
+
+  worker:
+    name: Worker
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workers
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: workers/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      # D1 has no RLS, so the authorization suite IS the security model, not extra
+      # coverage. It runs on every pull request and must never be skipped.
+      - run: npm run test:unit
+
+  ios:
+    name: Build and test
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -switch /Applications/Xcode_26.app
+
+      # No credential is involved: the app ships without one. This only points the build
+      # at the right Worker, and AppConfiguration refuses to launch if a secret ever does
+      # appear in the bundle.
+      - name: Write build configuration
+        env:
+          API_HOST: ${{ vars.STAGING_API_HOST }}
+        run: |
+          cat > Config/Secrets.Debug.xcconfig <<EOF
+          MM_API_BASE_URL = https:\$(MM_SLASH)\$(MM_SLASH)${API_HOST}
+          EOF
+
+      - name: Test
+        run: scripts/test.sh
+        env:
+          MM_DESTINATION: platform=iOS Simulator,name=iPhone 17 Pro
+
+      # Rule 21: warnings are build failures via SWIFT_TREAT_WARNINGS_AS_ERRORS, so a
+      # green build is also a warning-free build.
+      - name: Build Release
+        run: scripts/build.sh Release

@@ -1,0 +1,19 @@
+#include "Base.xcconfig"
+
+// Development. Points at a local `wrangler dev` Worker by default so a fresh clone never
+// touches shared data.
+
+MM_ENVIRONMENT = development
+MM_BUNDLE_ID_SUFFIX = .dev
+
+MM_API_BASE_URL = http:$(MM_SLASH)$(MM_SLASH)127.0.0.1:8787
+
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG
+SWIFT_OPTIMIZATION_LEVEL = -Onone
+GCC_OPTIMIZATION_LEVEL = 0
+ONLY_ACTIVE_ARCH = YES
+ENABLE_TESTABILITY = YES
+DEBUG_INFORMATION_FORMAT = dwarf
+
+// Last, so local credentials override the defaults above.
+#include? "Secrets.Debug.xcconfig"

@@ -1,0 +1,14 @@
+#include "Base.xcconfig"
+
+// Production.
+
+MM_ENVIRONMENT = production
+MM_BUNDLE_ID_SUFFIX =
+
+SWIFT_OPTIMIZATION_LEVEL = -O
+SWIFT_COMPILATION_MODE = wholemodule
+ENABLE_TESTABILITY = NO
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+VALIDATE_PRODUCT = YES
+
+#include? "Secrets.Release.xcconfig"

@@ -1,0 +1,67 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-miracles-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+  "observability": { "enabled": true },
+
+  // Development, staging and production are three separate D1 databases. A debug build
+  // must never be able to reach production data — see docs/architecture.md.
+  //
+  // `database_id` values come from `wrangler d1 create` and are not secrets, so they live
+  // in this file. Signing keys, RevenueCat webhook secrets and APNs credentials are
+  // Worker secrets (`wrangler secret put`) and never appear here.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "my-miracles-dev",
+      "database_id": "REPLACE_WITH_DEV_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "my-miracles-media-dev"
+    }
+  ],
+
+  "vars": {
+    "MM_ENVIRONMENT": "development"
+  },
+
+  "env": {
+    "staging": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "my-miracles-staging",
+          "database_id": "REPLACE_WITH_STAGING_DATABASE_ID",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "my-miracles-media-staging" }],
+      "vars": { "MM_ENVIRONMENT": "staging" }
+    },
+    "production": {
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "my-miracles",
+          "database_id": "REPLACE_WITH_PRODUCTION_DATABASE_ID",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "my-miracles-media" }],
+      "vars": { "MM_ENVIRONMENT": "production" }
+    }
+  }
+
+  // Added when the phase that needs them lands, so `wrangler dev` never fails on a
+  // binding to a resource that does not exist yet:
+  //   Phase 10  queues        — notification dispatch draining event_outbox
+  //   Phase 10  durable_object — live prayer detail and the moderator dashboard
+  //   Phase 12  secrets        — REVENUECAT_WEBHOOK_SECRET
+  //   Phase 3   secrets        — SESSION_SIGNING_KEY, APPLE_CLIENT_ID
+}

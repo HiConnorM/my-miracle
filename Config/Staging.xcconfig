@@ -1,0 +1,15 @@
+#include "Base.xcconfig"
+
+// Staging — a separate Cloudflare Worker and D1 database from development and
+// production. HTTPS is required; AppConfiguration refuses to launch on plaintext.
+
+MM_ENVIRONMENT = staging
+MM_BUNDLE_ID_SUFFIX = .staging
+
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = STAGING
+SWIFT_OPTIMIZATION_LEVEL = -O
+ENABLE_TESTABILITY = YES
+DEBUG_INFORMATION_FORMAT = dwarf-with-dsym
+VALIDATE_PRODUCT = YES
+
+#include? "Secrets.Staging.xcconfig"
