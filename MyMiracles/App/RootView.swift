@@ -1,95 +1,135 @@
 import SwiftUI
 
-/// Placeholder shell for Phase 0.
+/// Routes on authentication state.
 ///
-/// It exists to prove the foundation is wired — configuration loaded, logger and
-/// analytics resolved, Supabase client constructed, design tokens rendering in light and
-/// dark. Phase 3 replaces it with authentication and onboarding; Phase 4 with the
-/// prayer → answered → miracle slice. **No product features belong here.**
+/// `signedInWithoutProfile` is a first-class branch, not an edge case: an account exists
+/// the moment Apple verifies, but a username is chosen afterwards. Someone who abandons
+/// onboarding lands back here and is asked again.
 struct RootView: View {
     @Environment(\.dependencies) private var dependencies
+    @State private var model: AuthenticationModel?
+
+    var body: some View {
+        Group {
+            if let model {
+                content(for: model)
+                    .environment(model)
+            } else {
+                LaunchPlaceholder()
+            }
+        }
+        .task {
+            guard model == nil, let dependencies else { return }
+            let created = dependencies.makeAuthenticationModel()
+            model = created
+            await created.restore()
+        }
+    }
+
+    @ViewBuilder
+    private func content(for model: AuthenticationModel) -> some View {
+        switch model.state {
+        case .restoring:
+            LaunchPlaceholder()
+        case .signedOut:
+            OnboardingView()
+        case .signedInWithoutProfile:
+            ClaimUsernameView()
+        case .signedIn(let profile):
+            SignedInPlaceholder(profile: profile)
+        }
+    }
+}
+
+/// Shown while a stored session is being restored. Deliberately the same composition as the
+/// launch screen so there is no flash between them.
+struct LaunchPlaceholder: View {
+    var body: some View {
+        ZStack {
+            MiracleColor.canvas.ignoresSafeArea()
+            Image(systemName: "sparkle")
+                .font(.system(size: 44))
+                .foregroundStyle(MiracleColor.haloGold)
+                .accessibilityLabel("My Miracles")
+        }
+    }
+}
+
+/// Stands in for Home until Phase 6.
+///
+/// Kept intentionally bare: the point of Phase 3 is that the door works, not what is behind
+/// it. The sign-out and delete controls are here because Apple requires account deletion to
+/// be reachable from inside the app, and it should be testable from the first build that
+/// has accounts at all.
+struct SignedInPlaceholder: View {
+    @Environment(AuthenticationModel.self) private var model
+    let profile: ProfileResponse
+
+    @State private var isConfirmingDeletion = false
 
     var body: some View {
         ZStack {
             MiracleColor.canvas.ignoresSafeArea()
 
             VStack(spacing: MiracleSpacing.comfortable) {
+                Spacer()
+
                 Image(systemName: "sparkle")
                     .font(.system(size: 44))
                     .foregroundStyle(MiracleColor.haloGold)
                     .accessibilityHidden(true)
 
-                VStack(spacing: MiracleSpacing.small) {
-                    Text("My Miracles")
-                        .font(MiracleFont.reflective(.largeTitle))
-                        .foregroundStyle(MiracleColor.ink)
+                Text("Welcome, \(profile.displayName)")
+                    .font(MiracleFont.reflective(.title))
+                    .foregroundStyle(MiracleColor.ink)
 
-                    Text("Remember the good. Carry each other.")
-                        .font(MiracleFont.interface(.subheadline))
-                        .foregroundStyle(MiracleColor.inkSecondary)
-                        .multilineTextAlignment(.center)
-                }
+                Text("@\(profile.username)")
+                    .font(MiracleFont.interface(.subheadline))
+                    .foregroundStyle(MiracleColor.inkSecondary)
 
-                if let dependencies {
-                    foundationSummary(for: dependencies)
+                Text("Your journal begins in Phase 6.")
+                    .font(MiracleFont.interface(.footnote))
+                    .foregroundStyle(MiracleColor.inkSecondary)
+
+                Spacer()
+
+                VStack(spacing: MiracleSpacing.medium) {
+                    Button("Sign out") {
+                        Task { await model.signOut() }
+                    }
+                    .font(MiracleFont.interface(.body))
+                    .foregroundStyle(MiracleColor.ink)
+
+                    Button("Delete account", role: .destructive) {
+                        isConfirmingDeletion = true
+                    }
+                    .font(MiracleFont.interface(.footnote))
                 }
             }
             .padding(MiracleSpacing.generous)
         }
-        .onAppear {
-            dependencies?.logger.info("root view appeared", category: .app)
-        }
-    }
-
-    @ViewBuilder
-    private func foundationSummary(for dependencies: AppDependencies) -> some View {
-        let configuration = dependencies.configuration
-
-        VStack(alignment: .leading, spacing: MiracleSpacing.small) {
-            summaryRow(label: "Environment", value: configuration.environment.displayName)
-            summaryRow(label: "API host", value: configuration.apiBaseURL.host() ?? "—")
-            summaryRow(label: "Embedded credentials", value: "none")
-        }
-        .font(MiracleFont.interface(.footnote))
-        .padding(MiracleSpacing.regular)
-        .frame(maxWidth: .infinity)
-        .background(MiracleColor.canvasElevated, in: .rect(cornerRadius: MiracleRadius.card))
-        .overlay(
-            RoundedRectangle(cornerRadius: MiracleRadius.card)
-                .stroke(MiracleColor.separator, lineWidth: 1)
-        )
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Foundation status")
-    }
-
-    private func summaryRow(label: String, value: String) -> some View {
-        HStack {
-            Text(label)
-                .foregroundStyle(MiracleColor.inkSecondary)
-            Spacer(minLength: MiracleSpacing.regular)
-            Text(value)
-                .foregroundStyle(MiracleColor.ink)
+        .confirmationDialog(
+            "Delete your account?",
+            isPresented: $isConfirmingDeletion,
+            titleVisibility: .visible
+        ) {
+            Button("Delete my account", role: .destructive) {
+                Task { _ = await model.requestAccountDeletion() }
+            }
+            Button("Keep my account", role: .cancel) {}
+        } message: {
+            Text("Everything you have recorded will be erased after seven days. You can cancel by signing back in before then.")
         }
     }
 }
 
-// Previews use the DEBUG-only preview container, so they compile only in Debug. Staging
-// and Release must not carry preview scaffolding into a shipped binary.
 #if DEBUG
-#Preview("Light") {
-    RootView()
-        .environment(\.dependencies, .preview())
+#Preview("Signed in") {
+    SignedInPlaceholder(profile: ProfileResponse(username: "connor", displayName: "Connor"))
+        .environment(AuthenticationModel.preview())
 }
 
-#Preview("Dark") {
-    RootView()
-        .environment(\.dependencies, .preview())
-        .preferredColorScheme(.dark)
-}
-
-#Preview("Accessibility size") {
-    RootView()
-        .environment(\.dependencies, .preview())
-        .environment(\.dynamicTypeSize, .accessibility3)
+#Preview("Launching") {
+    LaunchPlaceholder()
 }
 #endif

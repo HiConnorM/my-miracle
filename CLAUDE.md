@@ -204,6 +204,12 @@ for this product than a crash:
 - Push payloads default to generic copy. Prayer and journal text never appears on a lock
   screen unless the user explicitly opts in.
 - Logging redacts user-authored content and identifiers by default.
+- An Apple identity token is verified for signature, issuer, **audience**, expiry and nonce
+  before it authenticates anyone. Dropping the audience check would let a token minted for
+  another app sign someone in.
+- Refresh tokens are single-use and stored only as a SHA-256 hash. A token presented twice
+  revokes the whole chain — so the client must coalesce concurrent refreshes, or it will
+  sign people out of their own accounts.
 
 ---
 

@@ -38,6 +38,10 @@ export class Router {
     return this.add('POST', pathname, handler);
   }
 
+  put(pathname: string, handler: Handler): this {
+    return this.add('PUT', pathname, handler);
+  }
+
   patch(pathname: string, handler: Handler): this {
     return this.add('PATCH', pathname, handler);
   }

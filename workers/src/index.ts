@@ -38,11 +38,31 @@ import {
   unfollowProfile,
 } from './routes/social';
 import { createReport } from './routes/reports';
+import {
+  cancelAccountDeletion,
+  getMe,
+  putProfile,
+  refreshSession,
+  requestAccountDeletion,
+  signInWithApple,
+  signOut,
+} from './routes/auth';
 
 export type { Env };
 
 const router = new Router()
   .get('/health', ({ env }) => health(env))
+
+  // Sessions. Only these three routes are reachable without a bearer token.
+  .post('/v1/auth/apple', signInWithApple)
+  .post('/v1/auth/refresh', refreshSession)
+  .post('/v1/auth/signout', signOut)
+
+  // Account
+  .get('/v1/me', getMe)
+  .put('/v1/me/profile', putProfile)
+  .delete('/v1/me', requestAccountDeletion)
+  .post('/v1/me/cancel-deletion', cancelAccountDeletion)
 
   // Content
   .get('/v1/feed', getFeed)

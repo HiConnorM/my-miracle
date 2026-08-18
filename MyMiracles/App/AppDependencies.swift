@@ -12,23 +12,34 @@ final class AppDependencies {
     let configuration: AppConfiguration
     let logger: any AppLogger
     let analytics: any AnalyticsClient
-    /// The only path to the backend. There is no client-side database and no platform
-    /// credential — see `docs/architecture.md`.
+    /// The authenticated path to the backend. There is no client-side database and no
+    /// platform credential — see `docs/architecture.md`.
     let api: any APIClient
+    let sessions: SessionManager
+    let authentication: any AuthenticationRepository
 
     init(
         configuration: AppConfiguration,
         logger: any AppLogger,
         analytics: any AnalyticsClient,
-        api: any APIClient
+        api: any APIClient,
+        sessions: SessionManager,
+        authentication: any AuthenticationRepository
     ) {
         self.configuration = configuration
         self.logger = logger
         self.analytics = analytics
         self.api = api
+        self.sessions = sessions
+        self.authentication = authentication
     }
 
     /// Wiring for a real build.
+    ///
+    /// The order matters and is not arbitrary. The unauthenticated client depends on
+    /// nothing; the refresher needs only that; the session manager needs the refresher; the
+    /// authenticated client needs the session manager for its bearer token. Building them
+    /// in that order is what keeps the graph acyclic — see ``HTTPSessionRefresher``.
     static func live(configuration: AppConfiguration) -> AppDependencies {
         let logger = OSLogAppLogger(environment: configuration.environment)
 
@@ -38,38 +49,76 @@ final class AppDependencies {
             ? LoggingAnalyticsClient(logger: logger)
             : NoopAnalyticsClient()
 
+        let unauthenticated = HTTPAPIClient(
+            baseURL: configuration.apiBaseURL,
+            tokens: AnonymousSessionTokenProvider(),
+            logger: logger
+        )
+
+        let sessions = SessionManager(
+            store: KeychainStore(),
+            refresher: HTTPSessionRefresher(unauthenticatedClient: unauthenticated),
+            logger: logger
+        )
+
+        let api = HTTPAPIClient(
+            baseURL: configuration.apiBaseURL,
+            tokens: sessions,
+            logger: logger
+        )
+
         return AppDependencies(
             configuration: configuration,
             logger: logger,
             analytics: analytics,
-            api: HTTPAPIClient(
-                baseURL: configuration.apiBaseURL,
-                // Phase 3 replaces this with the Keychain-backed session store.
-                tokens: AnonymousSessionTokenProvider(),
-                logger: logger
+            api: api,
+            sessions: sessions,
+            authentication: HTTPAuthenticationRepository(
+                unauthenticated: unauthenticated,
+                authenticated: api
             )
+        )
+    }
+
+    func makeAuthenticationModel() -> AuthenticationModel {
+        AuthenticationModel(
+            repository: authentication,
+            sessions: sessions,
+            analytics: analytics,
+            logger: logger
         )
     }
 }
 
 #if DEBUG
 extension AppDependencies {
-    /// For SwiftUI previews and tests. Points at an unreachable host so a preview can
-    /// never write to a real environment.
+    /// For SwiftUI previews and tests. Points at an unreachable host and an in-memory
+    /// keychain, so a preview can never write to a real environment or touch a real session.
     static func preview() -> AppDependencies {
         let configuration = AppConfiguration(
             environment: .development,
             apiBaseURL: URL(string: "http://127.0.0.1:8787")!
         )
+        let logger = NoopAppLogger()
+        let repository = FakeAuthenticationRepository()
+
+        let api = HTTPAPIClient(
+            baseURL: configuration.apiBaseURL,
+            tokens: AnonymousSessionTokenProvider(),
+            logger: logger
+        )
+
         return AppDependencies(
             configuration: configuration,
-            logger: NoopAppLogger(),
+            logger: logger,
             analytics: NoopAnalyticsClient(),
-            api: HTTPAPIClient(
-                baseURL: configuration.apiBaseURL,
-                tokens: AnonymousSessionTokenProvider(),
-                logger: NoopAppLogger()
-            )
+            api: api,
+            sessions: SessionManager(
+                store: InMemorySecureStore(),
+                refresher: repository,
+                logger: logger
+            ),
+            authentication: repository
         )
     }
 }

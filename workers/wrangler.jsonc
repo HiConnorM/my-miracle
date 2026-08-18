@@ -28,7 +28,11 @@
   ],
 
   "vars": {
-    "MM_ENVIRONMENT": "development"
+    "MM_ENVIRONMENT": "development",
+    // The `aud` claim in a Sign in with Apple identity token is the app's bundle id, which
+    // differs per configuration. A token minted for the dev build must not authenticate
+    // against staging or production.
+    "MM_APPLE_CLIENT_ID": "com.mymiracles.MyMiracles.dev"
   },
 
   "env": {
@@ -42,7 +46,10 @@
         }
       ],
       "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "my-miracles-media-staging" }],
-      "vars": { "MM_ENVIRONMENT": "staging" }
+      "vars": {
+        "MM_ENVIRONMENT": "staging",
+        "MM_APPLE_CLIENT_ID": "com.mymiracles.MyMiracles.staging"
+      }
     },
     "production": {
       "d1_databases": [
@@ -54,7 +61,10 @@
         }
       ],
       "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "my-miracles-media" }],
-      "vars": { "MM_ENVIRONMENT": "production" }
+      "vars": {
+        "MM_ENVIRONMENT": "production",
+        "MM_APPLE_CLIENT_ID": "com.mymiracles.MyMiracles"
+      }
     }
   }
 

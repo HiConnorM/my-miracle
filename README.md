@@ -67,17 +67,23 @@ issues its own rotating sessions.
 
 **D1 has no row-level security**, so the Worker is the only authorization boundary. That is
 a smaller, more auditable surface than direct database access — but a missing check has no
-backstop, which is why [docs/database.md](docs/database.md#required-adversarial-tests)
+backstop, which is why [docs/database.md](docs/database.md#the-adversarial-matrix)
 treats the adversarial matrix as the security model rather than as extra tests.
 
 ## Status
 
 **Phase 0** — repository, build configuration, app foundation, test targets.
 **Phase 1** — D1 schema: 22 tables, 33 indexes, 40 schema checks.
-**Phase 2** — Worker authorization layer and the adversarial matrix: 69 tests.
+**Phase 2** — Worker authorization layer and the adversarial matrix.
+**Phase 3** — Sign in with Apple, rotating sessions, onboarding, account deletion.
 
-Next: Phase 3 — Sign in with Apple verified in the Worker, refresh-token rotation, and
-onboarding. The full order is in
+Verified by 109 Worker tests, 83 iOS unit tests, 4 UI tests and 40 schema checks.
+
+Next: Phase 4 — the prayer → answered → miracle vertical slice, the first
+TestFlight-worthy milestone. The full order is in
 [docs/product-spec.md](docs/product-spec.md#build-order).
+
+**Before a device build:** enable the Sign in with Apple capability for the App ID in the
+Apple Developer portal. Simulator builds work without it.
 
 The name is a **working title** pending trademark clearance.

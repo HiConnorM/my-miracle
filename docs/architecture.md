@@ -81,7 +81,7 @@ account may see or change the row in question.
 Neither is strictly safer. RLS gives defence in depth; a Worker API gives a smaller, more
 auditable surface where the client cannot compose its own queries. What matters is being
 honest about which one you have: here, **a missing check has no backstop**, so the
-adversarial matrix in [database.md](database.md#required-adversarial-tests) is not
+adversarial matrix in [database.md](database.md#the-adversarial-matrix) is not
 optional polish. It is the security model.
 
 Concretely:
@@ -159,25 +159,69 @@ Owned in the Worker. No auth vendor holds the user graph — for an app whose da
 content, that is a deliberate choice.
 
 ```text
-iOS: Sign in with Apple → identity token
+iOS: Sign in with Apple → identity token + raw nonce
         ↓
-Worker: verify signature against Apple's JWKS, check iss / aud / exp / nonce
+Worker: fetch Apple's JWKS (cached 1h, refetched on an unknown kid)
+        verify RS256 signature
+        check iss = https://appleid.apple.com
+        check aud = this build's bundle id
+        check exp
+        check sha256(nonce) == the nonce Apple signed
         ↓
 Look up auth_identities by (provider, provider_subject)
    found     → existing account
-   not found → create account, then profile during onboarding
+   not found → create account + auth_identity + free entitlement
         ↓
-Issue access token   (short-lived, signed, never stored server-side)
-Issue refresh token  (opaque, SHA-256 hash stored in refresh_tokens)
+Issue access token   (HS256 JWT, 15 min, verified without a database round trip)
+Issue refresh token  (32 random bytes; only its SHA-256 is stored)
         ↓
-iOS: access token in memory, refresh token in the Keychain
+iOS: both persisted in the Keychain, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         ↓
-On 401: rotate. Presenting an already-rotated refresh token means theft —
-        revoke the whole family.
+On expiry: rotate. A refresh token is single-use.
 ```
 
-The access token is a signed JWT the Worker verifies without a database round trip. The
-refresh token is opaque and only its hash is stored, so a database dump cannot be replayed.
+Every check above is load-bearing, and each is one `if` away from being an authentication
+bypass. The audience check is the sharpest: without it, an identity token Apple minted for
+*any other app* would sign someone in here.
+
+**Theft detection.** A refresh token presented after it has already been rotated means two
+parties hold it, and there is no way to tell which is the legitimate device. The Worker
+revokes the entire chain and both must sign in again. An inconvenient sign-in beats a
+stranger holding a live session.
+
+That rule puts a requirement on the client: **concurrent refreshes must be coalesced.** Two
+screens hitting an expired token at the same moment would otherwise produce two exchanges,
+the second presenting an already-rotated token — and the app would sign the person out of
+their own account. `SessionManager` is an actor and funnels every caller onto one in-flight
+refresh.
+
+### The nonce handshake
+
+The app generates 32 random bytes, hands Apple the SHA-256 (**lowercase hex**), and sends
+the raw value to the Worker. Apple echoes the hash into the signed token; the Worker hashes
+what it received and compares. A captured token cannot be replayed, because the Worker will
+be expecting a different nonce.
+
+Both sides must agree on the encoding or every sign-in fails. This is asserted from both
+directions — `SignInNonceTests` pins the client to a known SHA-256 vector, and
+`authentication.test.ts` exercises match and mismatch against the Worker.
+
+### Account lifecycle
+
+An account exists the moment Apple verifies; a **profile** is claimed separately during
+onboarding. `signedInWithoutProfile` is a real state, not an edge case — someone can
+abandon onboarding and come back, and the app asks again rather than leaving a half-built
+identity behind.
+
+Deletion is reachable from inside the app, as Apple requires. It schedules erasure seven
+days out and revokes every session immediately, so the decision takes effect at once while
+an accidental tap stays recoverable. The job that performs the erasure lands in Phase 9.
+
+### Capability requirement
+
+Sign in with Apple needs the capability enabled for the App ID in the Apple Developer
+portal, and `Config/MyMiracles.entitlements` declares it. Simulator builds do not enforce
+it; **a device build will fail to sign until the capability is enabled**.
 
 ## Media
 
