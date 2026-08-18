@@ -6,7 +6,7 @@ import Foundation
 /// It enforces the rules the server enforces — ownership, one prayer response per person,
 /// a prayer answered only once — so a test that passes here is testing the real behaviour
 /// rather than a permissive mock. Compiled only in DEBUG.
-nonisolated final class FakePostRepository: PostRepository, @unchecked Sendable {
+nonisolated final class FakePostRepository: PostRepository, JournalRepository, @unchecked Sendable {
     private let lock = NSLock()
     private var posts: [String: Post] = [:]
     private var updatesByPost: [String: [PostUpdate]] = [:]
@@ -88,6 +88,47 @@ nonisolated final class FakePostRepository: PostRepository, @unchecked Sendable 
 
     func feed(after cursor: String?) async throws(AppError) -> PostPage {
         try await journal(after: cursor)
+    }
+
+    // MARK: - JournalRepository
+    //
+    // The fake stands in for the whole Worker, so it serves the journal's filtered and
+    // searchable view as well as plain post CRUD.
+
+    func journal(
+        filter: JournalFilter,
+        search: String?,
+        year: Int?,
+        cursor: String?
+    ) async throws(AppError) -> PostPage {
+        try failIfScripted()
+        return lock.withLock {
+            var matched = posts.values.sorted { $0.createdAt > $1.createdAt }
+            if let type = filter.postType { matched = matched.filter { $0.type == type } }
+            if let search, !search.isEmpty {
+                matched = matched.filter { $0.body.localizedCaseInsensitiveContains(search) }
+            }
+            if let year {
+                matched = matched.filter {
+                    Calendar.current.component(.year, from: $0.createdAt) == year
+                }
+            }
+            return PostPage(items: matched, nextCursor: nil)
+        }
+    }
+
+    func summary() async throws(AppError) -> JournalSummary {
+        try failIfScripted()
+        return lock.withLock {
+            var byYear: [Int: Int] = [:]
+            for entry in posts.values {
+                byYear[Calendar.current.component(.year, from: entry.createdAt), default: 0] += 1
+            }
+            return JournalSummary(
+                years: byYear.keys.sorted(by: >).map { .init(year: $0, total: byYear[$0]!) },
+                total: posts.count
+            )
+        }
     }
 
     func delete(id: String) async throws(AppError) {

@@ -77,6 +77,7 @@ behavior with positive closure** — not compulsive consumption.
 | Prayer rhythm | Gentle weekly recognition | Never "you lost your streak" |
 | Prayer window | A small daily batch of people to pray for | Finite, not an endless feed |
 | Annual recap | "38 moments you chose to remember" | Private unless explicitly shared |
+| Export | Your whole journal as a file you keep | Easy to find, and unapologetic |
 
 Copy standard: **"You made space for gratitude 4 times this week."** Never
 **"0-day streak — start over."**
@@ -169,6 +170,19 @@ prayer outcomes, or restrict prayer functionality by subscription.
 
 Phase 4 is the first TestFlight-worthy milestone. Do not build Circles, widgets or
 subscriptions until that loop feels emotionally right on a real iPhone.
+
+## The journal
+
+Grouped by year, then month — the way a life reads back. Filterable by type and year,
+searchable across your own entries only, and exportable in full.
+
+Export is not a compliance checkbox. The claim is that people stay because their history is
+here, **not because leaving is hard**, and `GET /v1/me/export` makes that literal: every
+entry including private and anonymous ones, prayer updates, and the prayer→miracle links,
+in a plain JSON file. Hiding it would make the promise a slogan.
+
+Search never crosses accounts. A journal holds illness, marriage, money and grief; the
+query is scoped to the viewer's own authorship at the SQL level, and a test asserts it.
 
 ## Beta success metrics
 

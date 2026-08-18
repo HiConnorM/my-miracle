@@ -94,37 +94,6 @@ export async function listPublicFeed(
 }
 
 /**
- * The viewer's own journal — every post they have ever written, including private ones
- * and ones displayed anonymously.
- *
- * There is deliberately no account parameter. The route is `/v1/me/journal`, so there is
- * no version of this query that can be pointed at somebody else.
- */
-export async function listJournal(
-  env: Env,
-  viewer: Viewer,
-  cursor: Cursor | null,
-  limit: number,
-): Promise<PostRecord[]> {
-  const keyset = cursor ? 'and (a.created_at, a.post_id) < (?2, ?3)' : '';
-  const statement = env.DB.prepare(`
-    select ${POST_COLUMNS} ${POST_FROM}
-    where a.owner_id = ?1
-      and p.status <> 'removed'
-      ${keyset}
-    order by a.created_at desc, a.post_id desc
-    limit ${cursor ? '?4' : '?2'}
-  `);
-
-  const bound = cursor
-    ? statement.bind(viewer.accountId, cursor.createdAt, cursor.id, limit)
-    : statement.bind(viewer.accountId, limit);
-
-  const { results } = await bound.all<PostRow>();
-  return results.map(toPostRecord);
-}
-
-/**
  * Someone's public profile timeline.
  *
  * Filtered on `display_profile_id`, **not** on authorship. That is what keeps anonymous

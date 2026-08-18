@@ -14,7 +14,6 @@ import {
   findPost,
   formatCursor,
   hasPrayed,
-  listJournal,
   listPublicFeed,
   parseCursor,
   prayedPostIds,
@@ -94,21 +93,6 @@ async function resolveAnsweredLink(
 export async function getFeed({ request, env, url }: RouteContext): Promise<Response> {
   const viewer = await requireViewer(request, env);
   const posts = await listPublicFeed(
-    env,
-    viewer,
-    parseCursor(url.searchParams.get('cursor')),
-    pageLimit(url),
-  );
-  return json(await page(env, viewer, posts));
-}
-
-/**
- * The viewer's own journal. No account parameter exists, by design — there is no shape of
- * this request that reads somebody else's history.
- */
-export async function getJournal({ request, env, url }: RouteContext): Promise<Response> {
-  const viewer = await requireViewer(request, env);
-  const posts = await listJournal(
     env,
     viewer,
     parseCursor(url.searchParams.get('cursor')),

@@ -14,14 +14,8 @@
 import type { Env } from './env';
 import { Router } from './http/router';
 import { json } from './http/responses';
-import {
-  createPost,
-  deletePost,
-  getFeed,
-  getJournal,
-  getPost,
-  updatePost,
-} from './routes/posts';
+import { createPost, deletePost, getFeed, getPost, updatePost } from './routes/posts';
+import { exportJournal, getJournal, getJournalSummary } from './routes/journal';
 import {
   createComment,
   createPrayerResponse,
@@ -70,6 +64,8 @@ const router = new Router()
   .get('/v1/home', getHome)
   .get('/v1/feed', getFeed)
   .get('/v1/me/journal', getJournal)
+  .get('/v1/me/journal/summary', getJournalSummary)
+  .get('/v1/me/export', exportJournal)
   .post('/v1/posts', createPost)
   .get('/v1/posts/:id', getPost)
   .patch('/v1/posts/:id', updatePost)

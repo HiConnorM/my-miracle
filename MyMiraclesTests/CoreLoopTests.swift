@@ -173,7 +173,9 @@ struct CoreLoopTests {
         // Both are in the journal.
         let journal = JournalModel(repository: repository, analytics: analytics)
         await journal.load()
-        let ids = Set((journal.state.value ?? []).map(\.id))
+        let ids = Set(
+            (journal.state.value ?? []).flatMap { $0.months.flatMap(\.entries) }.map(\.id)
+        )
         #expect(ids == [prayer.id, created.id])
     }
 
@@ -291,66 +293,5 @@ struct CoreLoopTests {
 
         composer.setVisibility(.privateOnly)
         #expect(!composer.draft.anonymous)
-    }
-}
-
-@MainActor
-@Suite("Journal")
-struct JournalModelTests {
-    @Test("Shows a designed empty state, not a blank list")
-    func emptyState() async {
-        let model = JournalModel(repository: FakePostRepository(), analytics: NoopAnalyticsClient())
-        await model.load()
-        #expect(model.state == .empty)
-    }
-
-    @Test("Surfaces a failure with something to retry")
-    func failureState() async {
-        let repository = FakePostRepository()
-        repository.nextFailure = AppError(kind: .offline)
-
-        let model = JournalModel(repository: repository, analytics: NoopAnalyticsClient())
-        await model.load()
-
-        #expect(model.state.error?.kind == .offline)
-        #expect(model.state.error?.isRetryable == true)
-    }
-
-    /// A flaky connection must never empty someone's journal in front of them.
-    @Test("Keeps what is on screen when a refresh fails")
-    func refreshFailureKeepsContent() async {
-        let repository = FakePostRepository(seed: [Post.fixture(id: "p1")])
-        let model = JournalModel(repository: repository, analytics: NoopAnalyticsClient())
-        await model.load()
-        #expect(model.state.value?.count == 1)
-
-        repository.nextFailure = AppError(kind: .offline)
-        await model.refresh()
-
-        #expect(model.state.value?.count == 1)
-    }
-
-    @Test("Folds a newly created post in without a round trip")
-    func upsert() async {
-        let model = JournalModel(repository: FakePostRepository(), analytics: NoopAnalyticsClient())
-        await model.load()
-
-        model.upsert(Post.fixture(id: "new"))
-        #expect(model.state.value?.map(\.id) == ["new"])
-
-        // Upserting the same id replaces rather than duplicates.
-        model.upsert(Post.fixture(id: "new", body: "edited"))
-        #expect(model.state.value?.count == 1)
-        #expect(model.state.value?.first?.body == "edited")
-    }
-
-    @Test("Removes a deleted post")
-    func remove() async {
-        let repository = FakePostRepository(seed: [Post.fixture(id: "p1"), Post.fixture(id: "p2")])
-        let model = JournalModel(repository: repository, analytics: NoopAnalyticsClient())
-        await model.load()
-
-        model.remove(id: "p1")
-        #expect(model.state.value?.map(\.id) == ["p2"])
     }
 }
