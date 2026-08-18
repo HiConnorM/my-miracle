@@ -33,6 +33,7 @@ import {
 } from './routes/social';
 import { createReport } from './routes/reports';
 import { listSaved, savePost, searchPeople, unsavePost } from './routes/discovery';
+import { actOnCase, getCase, listCases } from './routes/moderation';
 import { answerPrayer, createPostUpdate, listPostUpdates } from './routes/answering';
 import { getHome } from './routes/home';
 import {
@@ -99,13 +100,20 @@ const router = new Router()
   .get('/v1/people', searchPeople)
 
   // Safety
-  .post('/v1/reports', createReport);
+  .post('/v1/reports', createReport)
+
+  // Moderation. Staff only, and a non-staff caller gets 404 rather than 403 — a 403 would
+  // confirm the surface exists. Every action writes an audit record; nothing here deletes.
+  .get('/v1/moderation/cases', listCases)
+  .get('/v1/moderation/cases/:id', getCase)
+  .post('/v1/moderation/cases/:id/actions', actOnCase);
 
 // Deliberately absent, and not an oversight: there is no client route to
-// `moderation_cases`, `moderation_actions`, `post_authorship`, `refresh_tokens` or
-// `user_entitlements`. Tables with no route cannot be reached at all, which is a stronger
-// guarantee than a policy that refuses them. Staff tooling reaches moderation through the
-// admin surface added in Phase 9, behind a separate credential.
+// `post_authorship`, `refresh_tokens` or `user_entitlements`. Tables with no route cannot
+// be reached at all, which is a stronger guarantee than a policy that refuses them.
+//
+// The `/v1/moderation` routes exist but are invisible without a row in `staff` — they 404
+// for everybody else, including authenticated accounts.
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {

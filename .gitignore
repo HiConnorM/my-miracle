@@ -29,6 +29,8 @@ node_modules/
 .next/
 out/
 .vercel/
+.env.local
+next-env.d.ts
 
 # Cloudflare
 .wrangler/
@@ -38,3 +40,6 @@ workers/worker-configuration.d.ts
 
 # macOS
 .DS_Store
+
+# TypeScript incremental build state
+*.tsbuildinfo

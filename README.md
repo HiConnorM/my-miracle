@@ -56,7 +56,7 @@ credential-shaped ends up in the app bundle.
 | [docs/design-system.md](docs/design-system.md) | Warm sacred minimalism — palette, type, components |
 | `MyMiracles/` | The app. Feature-based; synchronized file groups. |
 | `workers/` | Cloudflare Worker API, D1 migrations, schema verification |
-| `admin/` | Next.js moderation console (Phase 9) |
+| `admin/` | Next.js moderation console — see [admin/README.md](admin/README.md) |
 
 ## Stack
 
@@ -81,12 +81,13 @@ treats the adversarial matrix as the security model rather than as extra tests.
 **Phase 6** — Home: a finite session, On This Day, and a real ending.
 **Phase 7** — the Journal: timeline by year and month, filters, search, export.
 **Phase 8** — the social graph: profiles, follows, encouragement, saving, finding people.
+**Phase 9** — moderation: staff-only queue, full audit trail, and the admin console.
 
-Verified by 216 Worker tests, 177 iOS unit tests, 4 UI tests and 40 schema checks —
+Verified by 251 Worker tests, 177 iOS unit tests, 4 UI tests and 40 schema checks —
 including contract tests against a live Worker and WCAG contrast measured on the shipped
 asset catalog in light, dark and both high-contrast appearances.
 
-Next: Phase 9 — moderation tooling. The full order is in
+Next: Phase 10 — notification delivery. The full order is in
 [docs/product-spec.md](docs/product-spec.md#build-order).
 
 **Requires Node 20.** Wrangler 4.123+ needs Node 22; the pinned version and the

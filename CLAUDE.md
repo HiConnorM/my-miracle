@@ -151,6 +151,7 @@ being evidence of anything.
 | `workers/authz/` | The authorization layer — every access decision lives here |
 | `workers/test/` | The adversarial matrix. D1 has no RLS; this is what replaces it |
 | `workers/scripts/` | `verify-schema.sh` — constraint and index checks |
+| `workers/authz/staff.ts` | Moderator access — a separate grant, never a user permission |
 | `admin/` | Next.js moderation console — server-side privileged access only |
 | `docs/` | Product spec, architecture, database, design system |
 | `Config/` | xcconfig build settings per environment |
@@ -214,6 +215,12 @@ for this product than a crash:
 - Push payloads default to generic copy. Prayer and journal text never appears on a lock
   screen unless the user explicitly opts in.
 - Logging redacts user-authored content and identifiers by default.
+- Moderation is a separate grant in `staff`, never a property of an account. A non-staff
+  caller gets 404, not 403 — a 403 confirms the surface exists.
+- Every moderation decision writes a `moderation_actions` row with actor, both states and a
+  reason code. There is no route that deletes content; removal is a status change.
+- The moderation console holds a service token server-side only. `lib/moderation.ts`
+  imports `server-only`, so a client import is a build error rather than a leak.
 - Colour contrast is measured, not assumed. A new token or pairing goes in
   `DesignSystemContrastTests`, which resolves the real asset catalog.
 - A fill that does not invert between light and dark takes `inkOnAccent`, never `ink` —

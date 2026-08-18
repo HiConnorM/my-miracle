@@ -39,6 +39,26 @@ jobs:
       # coverage. It runs on every pull request and must never be skipped.
       - run: npm run test:unit
 
+  admin:
+    name: Moderation console
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+      - run: npm ci
+      # `server-only` makes importing the API module from a client component a build
+      # error, so a green build is also proof the staff token cannot reach the browser.
+      - run: npm run build
+        env:
+          MM_API_BASE_URL: http://127.0.0.1:8787
+
   ios:
     name: Build and test
     runs-on: macos-15
