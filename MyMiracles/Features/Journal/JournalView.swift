@@ -73,15 +73,15 @@ struct JournalView: View {
                     .accessibilityLabel("Loading your journal")
 
             case .empty:
-                EmptyStateView(
-                    symbol: "book.closed",
+                EmptyState(
+                    symbol: MiracleIcon.journal,
                     title: "Your journal is empty",
                     message: "Record something you want to remember, or ask for prayer about something happening now.",
                     action: (title: "Record a miracle", perform: { composing = .miracle })
                 )
 
             case .failed(let error):
-                ErrorStateView(error: error) {
+                ErrorState(error: error) {
                     Task { await model.load() }
                 }
 
@@ -97,7 +97,7 @@ struct JournalView: View {
         ScrollView {
             LazyVStack(spacing: MiracleSpacing.medium) {
                 ForEach(posts) { post in
-                    Button { selected = post } label: { PostCard(post: post) }
+                    Button { selected = post } label: { JournalEntryCard(post: post) }
                         .buttonStyle(.plain)
                         .onAppear {
                             if post.id == posts.last?.id {

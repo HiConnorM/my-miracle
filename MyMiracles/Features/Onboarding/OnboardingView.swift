@@ -53,14 +53,29 @@ struct OnboardingView: View {
             VStack(spacing: MiracleSpacing.generous) {
                 progress
 
-                Group {
-                    switch step {
-                    case 0: welcome
-                    case 1: intentPicker
-                    default: privacyPromise
+                // Centred when the content fits, scrollable when it does not.
+                //
+                // A plain VStack with Spacers truncated the headline at accessibility text
+                // sizes — exactly the failure rule 15 exists to prevent. Tying the minimum
+                // height to the container keeps the composition centred at ordinary sizes
+                // without ever capping growth.
+                GeometryReader { proxy in
+                    ScrollView {
+                        Group {
+                            switch step {
+                            case 0: welcome
+                            case 1: intentPicker
+                            default: privacyPromise
+                            }
+                        }
+                        .frame(
+                            maxWidth: .infinity,
+                            minHeight: proxy.size.height,
+                            alignment: .center
+                        )
                     }
+                    .scrollBounceBehavior(.basedOnSize)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 footer
             }
@@ -83,8 +98,7 @@ struct OnboardingView: View {
 
     private var welcome: some View {
         VStack(spacing: MiracleSpacing.comfortable) {
-            Spacer()
-            Image(systemName: "sparkle")
+            Image(systemName: MiracleIcon.miracle)
                 .font(.system(size: 52))
                 .foregroundStyle(MiracleColor.haloGold)
                 .accessibilityHidden(true)
@@ -93,12 +107,13 @@ struct OnboardingView: View {
                 .font(MiracleFont.reflective(.title))
                 .foregroundStyle(MiracleColor.ink)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
 
             Text("Record miracles, carry prayers, and look back on the good.")
                 .font(MiracleFont.interface(.body))
                 .foregroundStyle(MiracleColor.inkSecondary)
                 .multilineTextAlignment(.center)
-            Spacer()
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -117,7 +132,6 @@ struct OnboardingView: View {
             Text("You can change your mind at any time.")
                 .font(MiracleFont.interface(.footnote))
                 .foregroundStyle(MiracleColor.inkSecondary)
-            Spacer()
         }
     }
 
@@ -152,8 +166,7 @@ struct OnboardingView: View {
 
     private var privacyPromise: some View {
         VStack(spacing: MiracleSpacing.comfortable) {
-            Spacer()
-            Image(systemName: "lock")
+            Image(systemName: MiracleIcon.privateEntry)
                 .font(.system(size: 44))
                 .foregroundStyle(MiracleColor.sage)
                 .accessibilityHidden(true)
@@ -162,28 +175,20 @@ struct OnboardingView: View {
                 .font(MiracleFont.reflective(.title))
                 .foregroundStyle(MiracleColor.ink)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
 
             Text("You choose what — if anything — to share.")
                 .font(MiracleFont.interface(.body))
                 .foregroundStyle(MiracleColor.inkSecondary)
                 .multilineTextAlignment(.center)
-            Spacer()
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
     @ViewBuilder
     private var footer: some View {
         if step < lastStep {
-            Button {
-                step += 1
-            } label: {
-                Text("Continue")
-                    .font(MiracleFont.interface(.headline))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, MiracleSpacing.regular)
-            }
-            .background(MiracleColor.ink, in: .rect(cornerRadius: MiracleRadius.pill))
-            .foregroundStyle(MiracleColor.canvas)
+            PrimaryButton(title: "Continue") { step += 1 }
         } else {
             SignInSection()
                 .onAppear {

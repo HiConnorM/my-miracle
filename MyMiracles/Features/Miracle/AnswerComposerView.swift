@@ -118,16 +118,10 @@ struct AnswerComposerView: View {
     }
 }
 
-/// The moment a prayer becomes a miracle.
-///
-/// Warm and brief. Honours Reduce Motion with a still variant — a celebration that ignores
-/// an accessibility setting is not a celebration (rule 15).
+/// The screen shown when a prayer becomes a miracle.
 struct AnsweredCelebrationView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
     let miracle: Post
-    @State private var hasAppeared = false
 
     var body: some View {
         ZStack {
@@ -135,43 +129,23 @@ struct AnsweredCelebrationView: View {
 
             VStack(spacing: MiracleSpacing.comfortable) {
                 Spacer()
-
-                Image(systemName: "sparkle")
-                    .font(.system(size: 64))
-                    .foregroundStyle(MiracleColor.haloGold)
-                    .scaleEffect(reduceMotion || hasAppeared ? 1 : 0.6)
-                    .opacity(reduceMotion || hasAppeared ? 1 : 0)
-                    .accessibilityHidden(true)
-
-                Text("Answered")
-                    .font(MiracleFont.reflective(.largeTitle))
-                    .foregroundStyle(MiracleColor.ink)
-
-                Text(miracle.body)
-                    .font(MiracleFont.reflective(.title3))
-                    .foregroundStyle(MiracleColor.inkSecondary)
-                    .multilineTextAlignment(.center)
-
-                Text("It's in your journal now.")
-                    .font(MiracleFont.interface(.footnote))
-                    .foregroundStyle(MiracleColor.inkSecondary)
-
+                CelebrationMoment(
+                    title: "Answered",
+                    message: miracle.body,
+                    caption: "It's in your journal now."
+                )
                 Spacer()
-
-                Button("Close") { dismiss() }
-                    .font(MiracleFont.interface(.headline))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, MiracleSpacing.regular)
-                    .background(MiracleColor.ink, in: .rect(cornerRadius: MiracleRadius.pill))
-                    .foregroundStyle(MiracleColor.canvas)
+                PrimaryButton(title: "Close") { dismiss() }
             }
             .padding(MiracleSpacing.generous)
         }
-        .onAppear {
-            guard !reduceMotion else { return }
-            withAnimation(MiracleMotion.settle) { hasAppeared = true }
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Your prayer was answered. It is now in your journal.")
     }
 }
+
+#if DEBUG
+#Preview("Answered") {
+    AnsweredCelebrationView(
+        miracle: .fixture(type: .miracle, body: "I got the call. I start on the first.")
+    )
+}
+#endif

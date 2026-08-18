@@ -1,20 +1,78 @@
 {
-  "colors" : [
+  "colors": [
     {
-      "color" : {
-        "color-space" : "srgb",
-        "components" : { "alpha" : "1.000", "red" : "0xD9", "green" : "0xB8", "blue" : "0xAE" }
+      "color": {
+        "color-space": "srgb",
+        "components": {
+          "alpha": "1.000",
+          "red": "0xD9",
+          "green": "0xB8",
+          "blue": "0xAE"
+        }
       },
-      "idiom" : "universal"
+      "idiom": "universal"
     },
     {
-      "appearances" : [ { "appearance" : "luminosity", "value" : "dark" } ],
-      "color" : {
-        "color-space" : "srgb",
-        "components" : { "alpha" : "1.000", "red" : "0xC9", "green" : "0xA6", "blue" : "0x9C" }
+      "color": {
+        "color-space": "srgb",
+        "components": {
+          "alpha": "1.000",
+          "red": "0xB9",
+          "green": "0x8F",
+          "blue": "0x82"
+        }
       },
-      "idiom" : "universal"
+      "idiom": "universal",
+      "appearances": [
+        {
+          "appearance": "contrast",
+          "value": "high"
+        }
+      ]
+    },
+    {
+      "color": {
+        "color-space": "srgb",
+        "components": {
+          "alpha": "1.000",
+          "red": "0xC9",
+          "green": "0xA6",
+          "blue": "0x9C"
+        }
+      },
+      "idiom": "universal",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
+    },
+    {
+      "color": {
+        "color-space": "srgb",
+        "components": {
+          "alpha": "1.000",
+          "red": "0xE2",
+          "green": "0xC9",
+          "blue": "0xC1"
+        }
+      },
+      "idiom": "universal",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        },
+        {
+          "appearance": "contrast",
+          "value": "high"
+        }
+      ]
     }
   ],
-  "info" : { "author" : "xcode", "version" : 1 }
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
 }

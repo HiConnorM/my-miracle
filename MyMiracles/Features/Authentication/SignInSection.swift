@@ -39,32 +39,6 @@ struct SignInSection: View {
     }
 }
 
-/// The one place a failure is shown to a person.
-///
-/// Renders `AppError`'s human copy only. The diagnostic stays redacted and never reaches
-/// the screen — a server error body can quote what someone just wrote.
-struct ErrorNotice: View {
-    let error: AppError
-    var onDismiss: (() -> Void)?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: MiracleSpacing.tight) {
-            Text(error.title)
-                .font(MiracleFont.interface(.subheadline, weight: .semibold))
-                .foregroundStyle(MiracleColor.ink)
-            Text(error.message)
-                .font(MiracleFont.interface(.footnote))
-                .foregroundStyle(MiracleColor.inkSecondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(MiracleSpacing.regular)
-        .background(MiracleColor.dawnRose.opacity(0.3), in: .rect(cornerRadius: MiracleRadius.card))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(error.title). \(error.message)")
-        .onTapGesture { onDismiss?() }
-    }
-}
-
 #if DEBUG
 #Preview("Sign in") {
     SignInSection()

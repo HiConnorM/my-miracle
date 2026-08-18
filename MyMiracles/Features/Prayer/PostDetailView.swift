@@ -55,7 +55,7 @@ struct PostDetailView: View {
             case .idle, .loading:
                 ProgressView().controlSize(.large).accessibilityLabel("Loading")
             case .empty, .failed(_):
-                ErrorStateView(error: model.state.error ?? AppError(kind: .notFound)) {
+                ErrorState(error: model.state.error ?? AppError(kind: .notFound)) {
                     Task { await model.load() }
                 }
             case .loaded(let post):
@@ -229,8 +229,8 @@ struct PostDetailView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, MiracleSpacing.regular)
         }
-        .background(MiracleColor.haloGold, in: .rect(cornerRadius: MiracleRadius.pill))
-        .foregroundStyle(MiracleColor.ink)
+        .background(MiracleColor.haloGoldSurface, in: .rect(cornerRadius: MiracleRadius.pill))
+        .foregroundStyle(MiracleColor.inkOnAccent)
         .accessibilityHint("Turns this prayer into a miracle in your journal")
     }
 

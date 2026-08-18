@@ -214,6 +214,10 @@ for this product than a crash:
 - Push payloads default to generic copy. Prayer and journal text never appears on a lock
   screen unless the user explicitly opts in.
 - Logging redacts user-authored content and identifiers by default.
+- Colour contrast is measured, not assumed. A new token or pairing goes in
+  `DesignSystemContrastTests`, which resolves the real asset catalog.
+- A fill that does not invert between light and dark takes `inkOnAccent`, never `ink` —
+  an adaptive ink on a fixed-light fill turns invisible in dark mode.
 - An Apple identity token is verified for signature, issuer, **audience**, expiry and nonce
   before it authenticates anyone. Dropping the audience check would let a token minted for
   another app sign someone in.
