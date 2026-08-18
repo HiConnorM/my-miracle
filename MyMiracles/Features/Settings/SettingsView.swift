@@ -20,6 +20,26 @@ struct SettingsView: View {
                     VStack(spacing: MiracleSpacing.comfortable) {
                         identity
 
+                        NavigationLink {
+                            SavedView()
+                        } label: {
+                            MiracleCard {
+                                HStack(spacing: MiracleSpacing.regular) {
+                                    Image(systemName: "bookmark")
+                                        .foregroundStyle(MiracleColor.sage)
+                                        .frame(width: 22)
+                                    Text("Saved")
+                                        .font(MiracleFont.interface(.body))
+                                        .foregroundStyle(MiracleColor.ink)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption)
+                                        .foregroundStyle(MiracleColor.inkSecondary)
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
+
                         promises
 
                         VStack(spacing: MiracleSpacing.medium) {

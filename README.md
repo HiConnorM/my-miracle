@@ -80,12 +80,13 @@ treats the adversarial matrix as the security model rather than as extra tests.
 **Phase 5** — the design system: tokens, components, and verified contrast.
 **Phase 6** — Home: a finite session, On This Day, and a real ending.
 **Phase 7** — the Journal: timeline by year and month, filters, search, export.
+**Phase 8** — the social graph: profiles, follows, encouragement, saving, finding people.
 
-Verified by 179 Worker tests, 152 iOS unit tests, 4 UI tests and 40 schema checks —
+Verified by 216 Worker tests, 177 iOS unit tests, 4 UI tests and 40 schema checks —
 including contract tests against a live Worker and WCAG contrast measured on the shipped
 asset catalog in light, dark and both high-contrast appearances.
 
-Next: Phase 8 — the social graph. The full order is in
+Next: Phase 9 — moderation tooling. The full order is in
 [docs/product-spec.md](docs/product-spec.md#build-order).
 
 **Requires Node 20.** Wrangler 4.123+ needs Node 22; the pinned version and the

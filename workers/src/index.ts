@@ -32,6 +32,7 @@ import {
   unfollowProfile,
 } from './routes/social';
 import { createReport } from './routes/reports';
+import { listSaved, savePost, searchPeople, unsavePost } from './routes/discovery';
 import { answerPrayer, createPostUpdate, listPostUpdates } from './routes/answering';
 import { getHome } from './routes/home';
 import {
@@ -90,6 +91,12 @@ const router = new Router()
   .delete('/v1/follows/:username', unfollowProfile)
   .post('/v1/blocks', createBlock)
   .delete('/v1/blocks/:username', deleteBlock)
+
+  // Saving and finding people. Discovery is a search box, not a ranked feed.
+  .post('/v1/posts/:id/save', savePost)
+  .delete('/v1/posts/:id/save', unsavePost)
+  .get('/v1/me/saved', listSaved)
+  .get('/v1/people', searchPeople)
 
   // Safety
   .post('/v1/reports', createReport);

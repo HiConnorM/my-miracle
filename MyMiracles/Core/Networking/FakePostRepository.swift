@@ -281,7 +281,8 @@ nonisolated extension Post {
             displayProfile: anonymous ? nil : DisplayProfile(username: "connor", displayName: "Connor"),
             isMine: isMine,
             hasPrayed: hasPrayed,
-            link: link
+            link: link,
+            isSaved: false
         )
     }
 }

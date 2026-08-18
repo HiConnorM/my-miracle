@@ -14,7 +14,7 @@ struct SignedInShell: View {
     @State private var homeReloadToken = UUID()
 
     /// Named to avoid colliding with SwiftUI's own `Tab`.
-    enum TabSelection: Hashable { case home, journal, you }
+    enum TabSelection: Hashable { case home, discover, journal, you }
 
     var body: some View {
         TabView(selection: $selection) {
@@ -30,6 +30,10 @@ struct SignedInShell: View {
                     }
                 }
                 .id(homeReloadToken)
+            }
+
+            Tab("Find people", systemImage: "magnifyingglass", value: TabSelection.discover) {
+                DiscoverView()
             }
 
             Tab("Journal", systemImage: MiracleIcon.journal, value: TabSelection.journal) {

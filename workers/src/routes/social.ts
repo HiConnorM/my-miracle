@@ -44,6 +44,13 @@ export async function getProfile({ request, env, params }: RouteContext): Promis
   if (!profile) throw hidden();
   if (await areBlocked(env, viewer.accountId, profile.account_id)) throw hidden();
 
+  const following = await env.DB.prepare(
+    `select 1 as present from follows
+     where follower_id = ? and followee_id = ? and state = 'accepted'`,
+  )
+    .bind(viewer.accountId, profile.account_id)
+    .first<{ present: number }>();
+
   return json({
     username: profile.username,
     displayName: profile.display_name,
@@ -51,6 +58,7 @@ export async function getProfile({ request, env, params }: RouteContext): Promis
     bio: profile.bio,
     createdAt: profile.created_at,
     isMe: profile.account_id === viewer.accountId,
+    isFollowing: following !== null,
   });
 }
 

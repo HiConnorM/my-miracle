@@ -47,12 +47,19 @@ export async function getPost({ request, env, params }: RouteContext): Promise<R
   const viewer = await requireViewer(request, env);
   const post = await loadViewablePost(env, viewer, params.id!);
 
+  const saved = await env.DB.prepare(
+    'select 1 as present from saved_posts where account_id = ? and post_id = ?',
+  )
+    .bind(viewer.accountId, post.id)
+    .first<{ present: number }>();
+
   return json({
     ...serializePost(post, {
       viewerAccountId: viewer.accountId,
       hasPrayed: await hasPrayed(env, viewer, post.id),
     }),
     link: await resolveAnsweredLink(env, viewer, post),
+    isSaved: saved !== null,
   });
 }
 

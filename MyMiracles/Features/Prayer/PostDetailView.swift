@@ -12,6 +12,9 @@ struct PostDetailView: View {
     @State private var updateText = ""
     @State private var isAnswering = false
     @State private var celebrating: Post?
+    @State private var isSaved = false
+    @State private var isReporting = false
+    @State private var openProfile: String?
 
     var body: some View {
         ZStack {
@@ -19,6 +22,47 @@ struct PostDetailView: View {
             content
         }
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let post = model?.post {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button(
+                            isSaved ? "Remove from saved" : "Save",
+                            systemImage: isSaved ? "bookmark.fill" : "bookmark"
+                        ) {
+                            Task { await toggleSave(post) }
+                        }
+                        if !post.isMine {
+                            Button("Report", systemImage: MiracleIcon.report) { isReporting = true }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                    .accessibilityLabel("More options")
+                }
+            }
+        }
+        .navigationDestination(item: $openProfile) { username in
+            ProfileView(username: username)
+        }
+        .sheet(isPresented: $isReporting) {
+            if let dependencies, let post = model?.post {
+                ReportSheet(subject: "this post") { category in
+                    do {
+                        try await HTTPSocialRepository(client: dependencies.api).report(
+                            subjectType: "post",
+                            subjectID: post.id,
+                            category: category,
+                            details: nil
+                        )
+                        dependencies.analytics.track(.reportSubmitted)
+                        return true
+                    } catch {
+                        return false
+                    }
+                }
+            }
+        }
         .task {
             guard model == nil, let dependencies else { return }
             let created = PostDetailModel(
@@ -28,7 +72,10 @@ struct PostDetailView: View {
             )
             model = created
             await created.load()
-            if let post = created.post { onChange(post) }
+            if let post = created.post {
+                isSaved = post.isSaved
+                onChange(post)
+            }
         }
         .sheet(isPresented: $isAnswering) {
             if let post = model?.post {
@@ -110,6 +157,16 @@ struct PostDetailView: View {
 
                 if let error = model.error {
                     ErrorNotice(error: error) { model.dismissError() }
+                }
+
+                if !post.isMine {
+                    CommentsSection(
+                        postID: post.id,
+                        canComment: post.acceptsPrayer,
+                        onOpenProfile: { openProfile = $0 }
+                    )
+                } else {
+                    CommentsSection(postID: post.id, canComment: false) { openProfile = $0 }
                 }
 
                 if post.isMine {
@@ -232,6 +289,24 @@ struct PostDetailView: View {
         .background(MiracleColor.haloGoldSurface, in: .rect(cornerRadius: MiracleRadius.pill))
         .foregroundStyle(MiracleColor.inkOnAccent)
         .accessibilityHint("Turns this prayer into a miracle in your journal")
+    }
+
+    /// Saving is private: nothing is sent to the author, and no count changes.
+    private func toggleSave(_ post: Post) async {
+        guard let dependencies else { return }
+        let repository = HTTPSocialRepository(client: dependencies.api)
+        let wasSaved = isSaved
+        isSaved.toggle()
+
+        do {
+            if wasSaved {
+                try await repository.unsave(postID: post.id)
+            } else {
+                try await repository.save(postID: post.id)
+            }
+        } catch {
+            isSaved = wasSaved
+        }
     }
 
     private func deleteButton(_ post: Post) -> some View {

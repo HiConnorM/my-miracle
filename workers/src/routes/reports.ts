@@ -1,8 +1,8 @@
 import type { RouteContext } from '../http/router';
 import { requireViewer, type Viewer } from '../auth/context';
-import { conflict, hidden, json } from '../http/responses';
+import { conflict, hidden, invalid, json } from '../http/responses';
 import { optionalString, readJson, requireEnum } from '../http/body';
-import { loadViewablePost } from '../authz/policy';
+import { areBlocked, loadViewablePost } from '../authz/policy';
 import { now, uuidv7 } from '../db/ids';
 
 const CATEGORIES = [
@@ -32,9 +32,15 @@ export async function createReport({ request, env }: RouteContext): Promise<Resp
   const body = await readJson(request);
 
   const subjectType = requireEnum(body, 'subjectType', SUBJECT_TYPES);
-  const subjectId = String(body.subjectId ?? '');
   const category = requireEnum(body, 'category', CATEGORIES);
   const details = optionalString(body, 'details', { max: 1000 });
+
+  // A profile is reported by username, because an account id is internal and no client ever
+  // sees one. It is resolved to the account id here so moderation cases key on something
+  // stable — a username can change.
+  const subjectId = subjectType === 'profile'
+    ? await resolveProfile(env, String(body.subjectId ?? ''))
+    : String(body.subjectId ?? '');
 
   // You may only report something you can already see. Otherwise this endpoint becomes an
   // oracle: submit ids until one is accepted and you have discovered which private posts
@@ -104,6 +110,14 @@ export async function createReport({ request, env }: RouteContext): Promise<Resp
   return json({ submitted: true }, 201);
 }
 
+async function resolveProfile(env: RouteContext['env'], username: string): Promise<string> {
+  const profile = await env.DB.prepare('select account_id from profiles where username = ?')
+    .bind(username.toLowerCase())
+    .first<{ account_id: string }>();
+  if (!profile) throw hidden();
+  return profile.account_id;
+}
+
 async function assertSubjectVisible(
   env: RouteContext['env'],
   viewer: Viewer,
@@ -123,10 +137,10 @@ async function assertSubjectVisible(
       return;
     }
     case 'profile': {
-      const profile = await env.DB.prepare('select account_id from profiles where account_id = ?')
-        .bind(subjectId)
-        .first<{ account_id: string }>();
-      if (!profile) throw hidden();
+      // Already resolved to an account id by `resolveProfile`, and a blocked person's
+      // profile is invisible — so reporting one is refused the same way viewing it is.
+      if (await areBlocked(env, viewer.accountId, subjectId)) throw hidden();
+      if (subjectId === viewer.accountId) throw invalid('you cannot report yourself');
       return;
     }
   }

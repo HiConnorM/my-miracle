@@ -184,6 +184,29 @@ in a plain JSON file. Hiding it would make the promise a slogan.
 Search never crosses accounts. A journal holds illness, marriage, money and grief; the
 query is scoped to the viewer's own authorship at the SQL level, and a test asserts it.
 
+## The social graph, and what it deliberately is not
+
+Follows, profiles, encouragement, saved posts and people search. Blocks outrank follows in
+both directions, and tearing down a follow edge is part of blocking.
+
+**Not built, and not an oversight:** direct messages (rule 12), follower or following
+counts anywhere in any payload, trending, ranked suggestions, reposting, quote-posting, and
+engagement-based ordering. Tests assert those routes return 404 and that no response
+carries a popularity field.
+
+Discovery is a search box. Someone has to be looking for a person to find one — that is the
+difference between a directory and a growth mechanic. The resting state says so out loud:
+*"We don't suggest people to follow — you decide who you carry."*
+
+Saving is a private bookmark, never a like. The author is never told, there is no count,
+and it does not influence what surfaces on Home. Visibility is re-checked on every read, so
+a post that becomes private, is deleted, or belongs to someone now blocked drops out of a
+saved list — a bookmark is a pointer, not a copy.
+
+A person is reported by **username**, because an account id is internal and no client ever
+sees one. The Worker resolves it to the account id so a moderation case survives a username
+change.
+
 ## Beta success metrics
 
 Not screen time. Measure: share creating a first private entry; share of prayer creators

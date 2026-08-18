@@ -93,6 +93,71 @@ nonisolated struct Post: Codable, Sendable, Equatable, Identifiable, Hashable {
     /// The other half of an answered story. Absent when there is none, or when the linked
     /// post is not visible to this viewer.
     var link: PostLink?
+    /// Whether the viewer has bookmarked this. Private to them — saving is not a like, and
+    /// the author is never told (docs/product-spec.md).
+    var isSaved: Bool = false
+
+    init(
+        id: String,
+        type: PostType,
+        body: String,
+        visibility: PostVisibility,
+        status: PostStatus,
+        createdAt: Date,
+        updatedAt: Date,
+        answeredAt: Date? = nil,
+        version: Int,
+        prayerResponseCount: Int,
+        commentCount: Int,
+        updateCount: Int,
+        displayProfile: DisplayProfile?,
+        isMine: Bool,
+        hasPrayed: Bool,
+        link: PostLink? = nil,
+        isSaved: Bool = false
+    ) {
+        self.id = id
+        self.type = type
+        self.body = body
+        self.visibility = visibility
+        self.status = status
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.answeredAt = answeredAt
+        self.version = version
+        self.prayerResponseCount = prayerResponseCount
+        self.commentCount = commentCount
+        self.updateCount = updateCount
+        self.displayProfile = displayProfile
+        self.isMine = isMine
+        self.hasPrayed = hasPrayed
+        self.link = link
+        self.isSaved = isSaved
+    }
+
+    /// `isSaved` and `link` are only sent by the post-detail route, not by list endpoints.
+    /// A synthesized decoder would reject a list payload for the missing key — a property
+    /// default applies to the memberwise initializer, never to decoding.
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        type = try container.decode(PostType.self, forKey: .type)
+        body = try container.decode(String.self, forKey: .body)
+        visibility = try container.decode(PostVisibility.self, forKey: .visibility)
+        status = try container.decode(PostStatus.self, forKey: .status)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        answeredAt = try container.decodeIfPresent(Date.self, forKey: .answeredAt)
+        version = try container.decode(Int.self, forKey: .version)
+        prayerResponseCount = try container.decode(Int.self, forKey: .prayerResponseCount)
+        commentCount = try container.decode(Int.self, forKey: .commentCount)
+        updateCount = try container.decode(Int.self, forKey: .updateCount)
+        displayProfile = try container.decodeIfPresent(DisplayProfile.self, forKey: .displayProfile)
+        isMine = try container.decode(Bool.self, forKey: .isMine)
+        hasPrayed = try container.decode(Bool.self, forKey: .hasPrayed)
+        link = try container.decodeIfPresent(PostLink.self, forKey: .link)
+        isSaved = try container.decodeIfPresent(Bool.self, forKey: .isSaved) ?? false
+    }
 
     var isAnonymous: Bool { displayProfile == nil }
     var isAnsweredPrayer: Bool { type == .prayer && status == .answered }
